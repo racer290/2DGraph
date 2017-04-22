@@ -98,13 +98,13 @@ public class Parser {
 				
 				Expression a = ex, b = this.parseFactor();
 				
-				ex = (() -> a.evaluate() * b.evaluate()); // multiplication
+				ex = (() -> a.evaluate() * b.evaluate());
 				
 			} else if (this.eat('/')) {
 				
 				Expression a = ex, b = this.parseFactor();
 				
-				ex = (() -> a.evaluate() / b.evaluate()); // division
+				ex = (() -> a.evaluate() / b.evaluate());
 				
 			} else
 				return ex;
@@ -113,23 +113,16 @@ public class Parser {
 		
 	}
 	
-	// Grammar:
-	// expression = term | expression `+` term | expression `-` term
-	// term = factor | term `*` factor | term `/` factor
-	// factor = `+` factor | `-` factor | `(` expression `)`
-	// | number | strtionName factor | factor `^` factor
-	
 	private Expression parseFactor() {
 		
 		Expression ex;
 		
-		if (this.eat('+')) return this.parseFactor(); // unary plus
-		if (this.eat('-')) return () -> this.parseFactor().evaluate() * -1; // unary
-		// minus
+		if (this.eat('+')) return this.parseFactor();
+		if (this.eat('-')) return () -> this.parseFactor().evaluate() * -1;
 		
 		int startPos = this.pos;
 		
-		if (this.eat('(')) { // parentheses
+		if (this.eat('(')) {
 			
 			ex = this.parseExpression();
 			
@@ -143,7 +136,7 @@ public class Parser {
 			
 			this.eat('|');
 			
-		} else if ((this.ch >= '0' && this.ch <= '9') || this.ch == '.') { // numbers
+		} else if ((this.ch >= '0' && this.ch <= '9') || this.ch == '.') {
 			
 			while ((this.ch >= '0' && this.ch <= '9') || this.ch == '.') {
 				
@@ -155,9 +148,8 @@ public class Parser {
 			
 			ex = (() -> d);
 			
-		} else if (this.ch >= 'a' && this.ch <= 'z') { // FIXME Variablen
+		} else if (this.ch >= 'a' && this.ch <= 'z') {
 			
-			// functions
 			while (this.ch >= 'a' && this.ch <= 'z') {
 				
 				this.nextChar();
@@ -206,7 +198,7 @@ public class Parser {
 			
 			Expression a = ex, b = this.parseFactor();
 			
-			ex = () -> Math.pow(a.evaluate(), b.evaluate()); // exponentiation
+			ex = () -> Math.pow(a.evaluate(), b.evaluate());
 			
 		}
 		
