@@ -1,5 +1,6 @@
 package graph2d.utils;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 
 public class Parser {
@@ -8,7 +9,7 @@ public class Parser {
 	protected int ch;
 	protected String expression;
 	
-	private HashMap<Character, Double> variables;
+	private HashMap<Character, BigDecimal> variables;
 	
 	public Parser(String expression) {
 		
@@ -19,12 +20,16 @@ public class Parser {
 		
 	}
 	
-	public void refreshVariable(char variable, double value) {
+	public void refreshVariable(char variable, BigDecimal value) {
 		
 		if (this.variables.containsKey(variable)) {
+			
 			this.variables.replace(variable, value);
+			
 		} else {
+			
 			this.variables.put(variable, value);
+			
 		}
 		
 	}
@@ -74,12 +79,12 @@ public class Parser {
 			if (this.eat('+')) {
 				
 				Expression a = ex, b = this.parseTerm();
-				ex = (() -> a.evaluate() + b.evaluate());
+				ex = (() -> a.evaluate().add(b.evaluate()));
 				
 			} else if (this.eat('-')) {
 				
 				Expression a = ex, b = this.parseTerm();
-				ex = (() -> a.evaluate() - b.evaluate());
+				ex = (() -> a.evaluate().subtract(b.evaluate()));
 				
 			} else
 				return ex;
@@ -98,13 +103,13 @@ public class Parser {
 				
 				Expression a = ex, b = this.parseFactor();
 				
-				ex = (() -> a.evaluate() * b.evaluate());
+				ex = (() -> a.evaluate().multiply(b.evaluate()));
 				
 			} else if (this.eat('/')) {
 				
 				Expression a = ex, b = this.parseFactor();
 				
-				ex = (() -> a.evaluate() / b.evaluate());
+				ex = (() -> a.evaluate().divide(b.evaluate()));
 				
 			} else
 				return ex;
@@ -118,7 +123,7 @@ public class Parser {
 		Expression ex;
 		
 		if (this.eat('+')) return this.parseFactor();
-		if (this.eat('-')) return () -> this.parseFactor().evaluate() * -1;
+		if (this.eat('-')) return () -> this.parseFactor().evaluate().negate();
 		
 		int startPos = this.pos;
 		
@@ -132,7 +137,7 @@ public class Parser {
 			
 			Expression a = this.parseExpression();
 			
-			ex = () -> Math.abs(a.evaluate());
+			ex = () -> a.evaluate().abs();
 			
 			this.eat('|');
 			
@@ -146,7 +151,7 @@ public class Parser {
 			
 			double d = Double.parseDouble(this.expression.substring(startPos, this.pos));
 			
-			ex = (() -> d);
+			ex = (() -> new BigDecimal(d));
 			
 		} else if (this.ch >= 'a' && this.ch <= 'z') {
 			
@@ -162,25 +167,25 @@ public class Parser {
 				
 				Expression a = this.parseFactor();
 				
-				ex = () -> Math.sqrt(a.evaluate());
+				ex = () -> new BigDecimal(Math.sqrt(a.evaluate().doubleValue()));
 				
 			} else if (str.equals("sin")) {
 				
 				Expression a = this.parseFactor();
 				
-				ex = () -> Math.sin(Math.toRadians(a.evaluate()));
+				ex = () -> new BigDecimal(Math.sin(Math.toRadians(a.evaluate().doubleValue())));
 				
 			} else if (str.equals("cos")) {
 				
 				Expression a = this.parseFactor();
 				
-				ex = () -> Math.cos(Math.toRadians(a.evaluate()));
+				ex = () -> new BigDecimal(Math.cos(Math.toRadians(a.evaluate().doubleValue())));
 				
 			} else if (str.equals("tan")) {
 				
 				Expression a = this.parseFactor();
 				
-				ex = () -> Math.tan(Math.toRadians(a.evaluate()));
+				ex = () -> new BigDecimal(Math.tan(Math.toRadians(a.evaluate().doubleValue())));
 				
 			} else if (str.length() == 1) {
 				
@@ -198,7 +203,7 @@ public class Parser {
 			
 			Expression a = ex, b = this.parseFactor();
 			
-			ex = () -> Math.pow(a.evaluate(), b.evaluate());
+			ex = () -> new BigDecimal(Math.pow(a.evaluate().doubleValue(), b.evaluate().doubleValue()));
 			
 		}
 		
@@ -209,7 +214,7 @@ public class Parser {
 	@FunctionalInterface
 	public interface Expression {
 		
-		public double evaluate();
+		public BigDecimal evaluate();
 		
 	}
 	

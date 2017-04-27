@@ -2,6 +2,8 @@ package graph2d.main;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -11,19 +13,30 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import graph2d.utils.JPlottingPane;
 
 public class Graph2DMain {
 	
+	private JPlottingPane plotPane;
+	private JTextField functionField;
+	
 	public static void main(String[] args) {
+		
+		new Graph2DMain();
+		
+	}
+	
+	public Graph2DMain() {
 		
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
 			public void run() {
 				
-				initGUI();
+				Graph2DMain.this.initGUI();
 				
 			}
 			
@@ -31,7 +44,7 @@ public class Graph2DMain {
 		
 	}
 	
-	private static void initGUI() {
+	private void initGUI() {
 		
 		JFrame frame = new JFrame("2D Graph Draw");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,7 +60,19 @@ public class Graph2DMain {
 		functionPanel.setBorder(functionBorder);
 		scalePanel.setBorder(scaleBorder);
 		
-		JTextField functionField = new JTextField();
+		this.functionField = new JTextField();
+		
+		this.functionField.addKeyListener(new KeyAdapter() {
+			
+			@Override
+			public void keyPressed(KeyEvent evt) {
+				
+				Graph2DMain.this.processKeyEvent(evt);
+				
+			}
+			
+		});
+		
 		JLabel functionValidLabel = new JLabel("Invalid Function");
 		
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -59,24 +84,47 @@ public class Graph2DMain {
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		
-		functionPanel.add(functionField, gbc);
+		functionPanel.add(this.functionField, gbc);
 		
 		gbc.gridy = 1;
 		
 		functionPanel.add(functionValidLabel, gbc);
 		
-		JSlider scaleX = new JSlider();
-		JSlider scaleY = new JSlider();
+		JSlider scaleSliderX = new JSlider();
+		
+		scaleSliderX.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent evt) {
+				
+				Graph2DMain.this.XState(evt);
+				
+			}
+			
+		});
+		
+		JSlider scaleSliderY = new JSlider();
+		
+		scaleSliderY.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent evt) {
+				
+				Graph2DMain.this.YState(evt);
+				
+			}
+			
+		});
 		
 		gbc.gridy = 0;
 		
-		scalePanel.add(scaleX, gbc);
+		scalePanel.add(scaleSliderX, gbc);
 		
 		gbc.gridy = 1;
 		
-		scalePanel.add(scaleY, gbc);
+		scalePanel.add(scaleSliderY, gbc);
 		
-		JPlottingPane plotPane = new JPlottingPane();
+		this.plotPane = new JPlottingPane();
 		
 		gbc.gridx = 1;
 		gbc.gridy = 0;
@@ -89,7 +137,7 @@ public class Graph2DMain {
 		
 		gbc.weightx = 0.5;
 		
-		helperPanel.add(plotPane, gbc);
+		helperPanel.add(this.plotPane, gbc);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -120,6 +168,84 @@ public class Graph2DMain {
 		frame.pack();
 		
 		frame.setVisible(true);
+		
+	}
+	
+	public void processKeyEvent(KeyEvent evt) {
+		
+		if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+			
+			this.plotPane.refreshFunction("");
+			
+		}
+		
+	}
+	
+	public void XState(ChangeEvent evt) {
+		
+		JSlider source = (JSlider) evt.getSource();
+		
+		if (!source.getValueIsAdjusting()) {
+			
+			int rawScale = source.getValue();
+			
+			int scale = 1;
+			
+			if (rawScale < 50) {
+				
+				rawScale = 50 - rawScale;
+				
+				int i = rawScale / 5;
+				
+				scale = (1 / (10 ^ i)) * i % 5 * 2;
+				
+			} else {
+				
+				rawScale -= 50;
+				
+				int i = rawScale / 5;
+				
+				scale = (10 ^ i) * i % 5 * 2;
+				
+			}
+			
+			this.plotPane.adjustScaleX(scale);
+			
+		}
+		
+	}
+	
+	public void YState(ChangeEvent evt) {
+		
+		JSlider source = (JSlider) evt.getSource();
+		
+		if (!source.getValueIsAdjusting()) {
+			
+			int rawScale = source.getValue();
+			
+			int scale = 1;
+			
+			if (rawScale < 50) {
+				
+				rawScale = 50 - rawScale;
+				
+				int i = rawScale / 5;
+				
+				scale = (1 / (10 ^ i)) * i % 5 * 2;
+				
+			} else {
+				
+				rawScale -= 50;
+				
+				int i = rawScale / 5;
+				
+				scale = (10 ^ i) * i % 5 * 2;
+				
+			}
+			
+			this.plotPane.adjustScaleY(scale);
+			
+		}
 		
 	}
 	
