@@ -1,6 +1,7 @@
 package graph2d.utils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 
 public class Parser {
@@ -50,8 +51,6 @@ public class Parser {
 		
 		if (this.ch == charToEat) {
 			
-			System.out.println("Ate: " + (char) charToEat);
-			
 			this.nextChar();
 			return true;
 			
@@ -79,12 +78,14 @@ public class Parser {
 			if (this.eat('+')) {
 				
 				Expression a = ex, b = this.parseTerm();
-				ex = (() -> a.evaluate().add(b.evaluate()));
+				
+				ex = () -> a.evaluate().add(b.evaluate());
 				
 			} else if (this.eat('-')) {
 				
 				Expression a = ex, b = this.parseTerm();
-				ex = (() -> a.evaluate().subtract(b.evaluate()));
+				
+				ex = () -> a.evaluate().subtract(b.evaluate());
 				
 			} else
 				return ex;
@@ -103,13 +104,13 @@ public class Parser {
 				
 				Expression a = ex, b = this.parseFactor();
 				
-				ex = (() -> a.evaluate().multiply(b.evaluate()));
+				ex = () -> a.evaluate().multiply(b.evaluate());
 				
 			} else if (this.eat('/')) {
 				
 				Expression a = ex, b = this.parseFactor();
 				
-				ex = (() -> a.evaluate().divide(b.evaluate()));
+				ex = () -> a.evaluate().divide(b.evaluate(), RoundingMode.HALF_EVEN/*cus nicer calculation (/2 etc.)*/);
 				
 			} else
 				return ex;
@@ -149,9 +150,9 @@ public class Parser {
 				
 			}
 			
-			double d = Double.parseDouble(this.expression.substring(startPos, this.pos));
+			BigDecimal d = new BigDecimal(Double.parseDouble(this.expression.substring(startPos, this.pos)));
 			
-			ex = (() -> new BigDecimal(d));
+			ex = () -> d;
 			
 		} else if (this.ch >= 'a' && this.ch <= 'z') {
 			

@@ -15,17 +15,21 @@ public class JPlottingPane extends JPanel {
 	private static final long serialVersionUID = 292583876481772305L;
 	
 	private Expression function;
-	private String rawFunction;
+	private Parser parser;
 	
 	private int scaleX;
 	private int scaleY;
 	
 	private Point center;
 	
+	boolean rendering;
+	
 	public JPlottingPane() {
 		
 		super();
-		this.rawFunction = "sin x";
+		
+		this.refreshFunction("");
+		
 		this.setPreferredSize(new Dimension(500, 500));
 		
 		this.scaleX = 1;
@@ -43,41 +47,34 @@ public class JPlottingPane extends JPanel {
 		this.center.x = this.getWidth() / 2;
 		this.center.y = this.getHeight() / 2;
 		
+		// Background
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		
+		// X axis
 		g.setColor(Color.BLACK);
 		g.drawLine(10, this.getHeight() / 2, this.getWidth() - 10, this.getHeight() / 2);
+		// Y axis
 		g.drawLine(this.getWidth() / 2, 10, this.getWidth() / 2, this.getHeight() - 10);
 		
 		g.setColor(Color.RED);
 		
-		Parser parser = new Parser(this.rawFunction);
-		this.function = parser.parseInput();
+		if (!this.isRendering()) return;
 		
-		parser.refreshVariable('x', BigDecimal.ZERO);
+		this.parser.refreshVariable('x', new BigDecimal(-(this.getWidth() / 2 - 10) / this.scaleX));
 		
-		Point lastPoint = null;
+		Point lastPoint = this.convertCoords(-this.getWidth() / 2 + 10, this.function.evaluate().intValue());
 		
-		try {
-			
-			lastPoint = this.convertCoords(0, this.function.evaluate().intValue());
-			
-		} catch (ArithmeticException ex) {
-		} catch (NumberFormatException ex) {
-			
-			if (!ex.getMessage().equals("Infinite or NaN")) throw ex;
-			
-		}
+		// Cache value
+		int xmax = (this.getWidth() / 2 - 10) / this.scaleX;
 		
-		for (int x = -(this.getWidth() / 2 - 10) / this.scaleX; x < (this.getWidth() / 2 - 10)
-				/ this.scaleX; x *= this.scaleX) {
+		for (int x = -(this.getWidth() / 2 - 10) / this.scaleX; x < xmax; x += this.scaleX) {
 			
-			parser.refreshVariable('x', new BigDecimal(x));
+			this.parser.refreshVariable('x', new BigDecimal(x));
 			
 			try {
 				
-				int y = this.function.evaluate().intValue() * this.scaleY;
+				int y = this.function.evaluate().multiply(new BigDecimal(this.scaleY)).intValue();
 				
 				Point point = this.convertCoords(x, y);
 				
@@ -91,15 +88,9 @@ public class JPlottingPane extends JPanel {
 					
 				}
 				
-				System.out.println(
-						"real x: " + x + ", drawn x: " + point.x + "\nreal y: " + y + ", drawn y: " + point.y + '\n'
-						+ Math.sin(Math.toRadians(x)));
-				
 				lastPoint = point;
 				
-			} catch (NumberFormatException ex) {
-				
-				if (!ex.getMessage().equals("Infinite or NaN")) throw ex;
+			} catch (ArithmeticException ex) {
 				
 				lastPoint = null;
 				
@@ -122,19 +113,50 @@ public class JPlottingPane extends JPanel {
 	public void adjustScaleX(int scale) {
 		
 		this.scaleX = scale;
+		this.repaint();
 		
 	}
 	
 	public void adjustScaleY(int scale) {
 		
 		this.scaleY = scale;
+		this.repaint();
 		
 	}
 	
-	public void refreshFunction(String newFunc) {
+	public boolean refreshFunction(String newFunc) {
 		
-		this.rawFunction = newFunc;
+		this.parser = new Parser(newFunc);
+		
+		try {
+			
+			this.function = this.parser.parseInput();
+			this.setRendering(true);
+			
+		} catch (RuntimeException ex) {
+			
+			if (!(ex.getMessage().startsWith("Unexpected: ") || ex.getMessage().startsWith("Unknown function: ")))
+				throw ex;
+			
+			this.setRendering(false);
+			
+		}
+		
 		this.repaint();
+		
+		return this.isRendering();
+		
+	}
+	
+	public boolean isRendering() {
+		
+		return this.rendering;
+		
+	}
+	
+	public void setRendering(boolean rendering) {
+		
+		this.rendering = rendering;
 		
 	}
 	

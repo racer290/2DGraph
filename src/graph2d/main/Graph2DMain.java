@@ -1,5 +1,6 @@
 package graph2d.main;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.KeyAdapter;
@@ -22,6 +23,7 @@ public class Graph2DMain {
 	
 	private JPlottingPane plotPane;
 	private JTextField functionField;
+	private JLabel functionValidLabel;
 	
 	public static void main(String[] args) {
 		
@@ -61,6 +63,7 @@ public class Graph2DMain {
 		scalePanel.setBorder(scaleBorder);
 		
 		this.functionField = new JTextField();
+		this.functionField.setMinimumSize(new Dimension(50, this.functionField.getHeight()));
 		
 		this.functionField.addKeyListener(new KeyAdapter() {
 			
@@ -73,7 +76,7 @@ public class Graph2DMain {
 			
 		});
 		
-		JLabel functionValidLabel = new JLabel("Invalid Function");
+		this.functionValidLabel = new JLabel("Invalid Function");
 		
 		GridBagConstraints gbc = new GridBagConstraints();
 		
@@ -88,7 +91,7 @@ public class Graph2DMain {
 		
 		gbc.gridy = 1;
 		
-		functionPanel.add(functionValidLabel, gbc);
+		functionPanel.add(this.functionValidLabel, gbc);
 		
 		JSlider scaleSliderX = new JSlider();
 		
@@ -175,7 +178,15 @@ public class Graph2DMain {
 		
 		if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
 			
-			this.plotPane.refreshFunction("");
+			if (this.plotPane.refreshFunction(this.functionField.getText().trim())) {
+				
+				this.functionValidLabel.setText("Function plotted!");
+				
+			} else {
+				
+				this.functionValidLabel.setText("Invalid function!");
+				
+			}
 			
 		}
 		
